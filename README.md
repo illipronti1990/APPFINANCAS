@@ -60,13 +60,35 @@ npm run lint
 ## Fluxo de uso
 
 1. Crie conta / entre (senha ou link mágico).
-2. Vá em **Importar** e:
-   - importe a planilha modelo (`data/planilha-modelo.xlsx`), ou
-   - envie seu `.xlsx` com as mesmas abas.
-3. Navegue: **Início → Dashboard → Agenda → Fluxo → Fixos → Empréstimos → Cartões → Cenários / Simulador → Prioridades → Patrimônio → Projeção**.
-4. Marque itens como pagos na Agenda/Fixos/parcelas Caixa PJ; atualize utilizado dos cartões; rode cenários.
+2. Vá em **Importar** e carregue a planilha (modelo ou seu `.xlsx`) — opcional se preferir digitar tudo na UI.
+3. No dia a dia, use **Adicionar / Editar / Excluir** em cada módulo (veja abaixo).
+4. Navegue: **Início → Dashboard → Agenda → Fluxo → Fixos → Empréstimos → Cartões → Cenários / Simulador → Prioridades → Patrimônio → Projeção**.
 
-Conta nova sem importação = **estado vazio** (sem inventar histórico).
+Conta nova sem dados = **estado vazio** (“Importe a planilha ou adicione o primeiro item”).
+
+## Como inserir e excluir dados
+
+Cada tela principal tem botões claros de **Adicionar** (painel expansível) e **Excluir** (com confirmação). **Editar** abre o formulário na própria linha.
+
+| Tela | O que você pode fazer |
+| --- | --- |
+| **Agenda** | Adicionar/editar/excluir vencimentos (dia, conta, valor, pago, categoria, mês/ano). Marcar pago. |
+| **Fixos** | Adicionar/editar/excluir despesas fixas (valor, dia, banco, até quando, pago). |
+| **Empréstimos** | Adicionar/editar/excluir empréstimos parcelados e dívidas em aberto; gerenciar parcelas Caixa PJ (inclui marcar pago). |
+| **Cartões** | Adicionar/editar/excluir cartões; editar limite, utilizado, faturas, dias. |
+| **Contas** | Adicionar/excluir linhas da matriz; editar valores mês a mês. |
+| **Fluxo** | Editar saldo inicial; adicionar/editar/excluir dias; **Regenerar saídas a partir da Agenda** (mantém entradas). |
+| **Patrimônio** | Adicionar/editar/excluir ativos e passivos. |
+| **Importar** | Carga em massa (mantida) + **Apagar todos os meus dados** (digite `APAGAR` + confirmação). |
+
+### Fluxo sugerido no caixa diário
+
+1. Defina o **saldo inicial** do mês.
+2. Lance **entradas** (salário, adiantamentos) nos dias certos.
+3. Clique **Regenerar saídas a partir da Agenda** ou edite dias manualmente.
+4. Dias com saldo negativo mostram **SEM CAIXA**.
+
+Não é necessário reimportar a planilha inteira para cada ajuste pontual.
 
 ## Pré-visualização sem Supabase
 
@@ -74,7 +96,7 @@ Conta nova sem importação = **estado vazio** (sem inventar histórico).
 APP_UI_PREVIEW=1 npm run dev
 ```
 
-Carrega a planilha modelo só para UI (não grava no banco).
+Carrega a planilha modelo só para UI (formulários aparecem; gravação na nuvem exige Supabase configurado).
 
 ## Módulos (espelho das abas)
 
@@ -102,11 +124,12 @@ data/planilha-modelo.xlsx     ← modelo para importação
 supabase/migrations/          ← schema + RLS
 src/lib/import/excel.ts       ← parser das abas
 src/lib/domain/               ← tipos + KPIs + simulador
+src/app/actions/crud.ts       ← criar / editar / excluir
 src/app/(app)/                ← telas autenticadas
 ```
 
 ## Observações
 
 - Design acolhedor (verde sage), tipografia Sora + Source Sans 3, mobile-friendly.
-- Saldos reais vivem no Supabase do usuário após importar — não ficam hardcoded no app.
-- Ranking completo e CRUD fino de todas as células da planilha podem evoluir; o MVP já navega e calcula a partir dos dados importados.
+- Saldos reais vivem no Supabase do usuário após importar ou digitar — não ficam hardcoded no app.
+- Importação em massa continua disponível; o dia a dia é CRUD na interface.

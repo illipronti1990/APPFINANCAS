@@ -64,14 +64,16 @@ export function Money({ value }: { value: number }) {
 
 export function EmptyState({
   title,
-  text,
+  text = "Importe a planilha ou adicione o primeiro item.",
   href = "/importar",
   cta = "Importar planilha",
+  secondaryCta,
 }: {
   title: string;
-  text: string;
+  text?: string;
   href?: string;
   cta?: string;
+  secondaryCta?: React.ReactNode;
 }) {
   return (
     <div className="rounded-2xl border border-dashed border-line bg-surface/70 px-5 py-10 text-center">
@@ -79,12 +81,15 @@ export function EmptyState({
         {title}
       </p>
       <p className="mt-2 text-ink-muted">{text}</p>
-      <a
-        href={href}
-        className="mt-5 inline-flex rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-white no-underline hover:bg-accent-deep"
-      >
-        {cta}
-      </a>
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+        <a
+          href={href}
+          className="inline-flex rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-white no-underline hover:bg-accent-deep"
+        >
+          {cta}
+        </a>
+        {secondaryCta}
+      </div>
     </div>
   );
 }
