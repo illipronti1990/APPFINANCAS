@@ -498,7 +498,7 @@ export async function upsertBillMatrixRow(formData: FormData) {
 
   // Optional month amounts: amount_YYYY_MM
   const amountEntries: { year: number; month: number; amount: number }[] = [];
-  for (const [key, value] of formData.entries()) {
+  for (const [key] of formData.entries()) {
     const m = /^amount_(\d{4})_(\d{1,2})$/.exec(key);
     if (!m) continue;
     const amount = num(formData, key);
