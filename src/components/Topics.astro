@@ -1,0 +1,59 @@
+---
+import { site } from "../content/site";
+
+const { topics } = site;
+---
+
+<section class="section topics" id="ajudar" aria-labelledby="topics-title">
+  <div class="container">
+    <p class="section__eyebrow">Educação financeira</p>
+    <h2 class="section__title" id="topics-title">{topics.title}</h2>
+    <p class="section__subtitle">{topics.subtitle}</p>
+
+    <ul class="topics__list">
+      {
+        topics.items.map((item) => (
+          <li class="topic">
+            <h3 class="topic__title">{item.title}</h3>
+            <p class="topic__text">{item.description}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .topics__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .topic {
+    padding: 1.35rem 1.25rem;
+    border-radius: var(--radius);
+    background: color-mix(in srgb, #fff 78%, var(--color-bg-soft));
+    border: 1px solid color-mix(in srgb, var(--color-line) 75%, transparent);
+  }
+
+  .topic__title {
+    margin: 0 0 0.55rem;
+    font-size: 1.15rem;
+  }
+
+  .topic__text {
+    margin: 0;
+    color: var(--color-ink-muted);
+    font-size: 1.05rem;
+  }
+
+  @media (min-width: 760px) {
+    .topics__list {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.15rem;
+    }
+  }
+</style>

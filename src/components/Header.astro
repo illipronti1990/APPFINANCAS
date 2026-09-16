@@ -1,0 +1,64 @@
+---
+import { site } from "../content/site";
+---
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="site-header__brand" href="#topo">{site.name}</a>
+    <nav class="site-header__nav" aria-label="Navegação principal">
+      <a href="#sobre">Sobre</a>
+      <a href="#ajudar">Temas</a>
+      <a href="#contato">Contato</a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    backdrop-filter: blur(12px);
+    background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-line) 70%, transparent);
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 3.75rem;
+  }
+
+  .site-header__brand {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+
+  .site-header__nav {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .site-header__nav a {
+    color: var(--color-ink-muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .site-header__nav a:hover {
+    color: var(--color-accent-deep);
+  }
+
+  @media (max-width: 540px) {
+    .site-header__nav {
+      display: none;
+    }
+  }
+</style>

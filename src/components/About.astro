@@ -1,0 +1,30 @@
+---
+import { site } from "../content/site";
+
+const { about } = site;
+---
+
+<section class="section about" id="sobre" aria-labelledby="about-title">
+  <div class="container about__inner">
+    <p class="section__eyebrow">Quem sou eu</p>
+    <h2 class="section__title" id="about-title">{about.title}</h2>
+    <div class="about__text">
+      {about.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .about__inner {
+    max-width: var(--content-width);
+  }
+
+  .about__text {
+    color: var(--color-ink-muted);
+    font-size: 1.15rem;
+  }
+
+  .about__text p + p {
+    margin-top: var(--space-md);
+  }
+</style>

@@ -1,0 +1,38 @@
+---
+import { site } from "../content/site";
+---
+
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <p class="site-footer__name">
+      {site.name} · {site.year}
+    </p>
+    <p class="site-footer__note">{site.footer.note}</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    padding-block: var(--space-lg) var(--space-xl);
+    border-top: 1px solid color-mix(in srgb, var(--color-line) 80%, transparent);
+  }
+
+  .site-footer__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .site-footer__name,
+  .site-footer__note {
+    margin: 0;
+    color: var(--color-ink-muted);
+    font-size: 0.95rem;
+  }
+
+  .site-footer__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+</style>

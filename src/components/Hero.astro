@@ -1,0 +1,139 @@
+---
+import { site } from "../content/site";
+
+const { hero } = site;
+---
+
+<section class="hero" id="topo" aria-labelledby="hero-brand">
+  <div class="hero__atmosphere" aria-hidden="true">
+    <svg class="hero__motif" viewBox="0 0 640 720" role="img">
+      <defs>
+        <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#8fb39f" />
+          <stop offset="100%" stop-color="#3f6f5c" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M340 80c110 90 180 200 180 320 0 112-72 200-180 246C230 600 158 512 158 400c0-120 70-230 182-320Z"
+        fill="url(#leaf)"
+        opacity="0.28"
+      />
+      <path
+        d="M300 160c78 64 126 146 126 236 0 82-50 146-126 180-76-34-126-98-126-180 0-90 48-172 126-236Z"
+        fill="url(#leaf)"
+        opacity="0.45"
+      />
+    </svg>
+  </div>
+
+  <div class="container hero__content">
+    <p class="hero__brand reveal" id="hero-brand">{hero.brand}</p>
+    <h1 class="hero__headline reveal reveal-delay-1">{hero.headline}</h1>
+    <p class="hero__support reveal reveal-delay-2">{hero.support}</p>
+    <div class="hero__actions reveal reveal-delay-3">
+      <a class="btn" href={hero.ctaHref}>{hero.ctaLabel}</a>
+      <a class="btn btn--ghost" href="#sobre">Conhecer um pouco mais</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    min-height: min(92vh, 54rem);
+    display: flex;
+    align-items: flex-end;
+    padding-block: clamp(4.5rem, 12vw, 7rem) clamp(3rem, 8vw, 5rem);
+  }
+
+  .hero__atmosphere {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(70% 55% at 78% 42%, rgba(125, 168, 146, 0.35), transparent 70%),
+      linear-gradient(120deg, rgba(243, 246, 244, 0.2) 0%, rgba(215, 232, 222, 0.45) 100%);
+  }
+
+  .hero__motif {
+    position: absolute;
+    right: -8%;
+    top: 4%;
+    width: min(68vw, 34rem);
+    height: auto;
+    animation: drift 10s var(--ease-out) infinite alternate;
+  }
+
+  .hero__content {
+    width: min(100% - 2rem, 42rem);
+    margin-inline: auto 0;
+    margin-left: max(1rem, calc((100% - var(--max-width)) / 2 + 0px));
+    padding-inline: 0;
+  }
+
+  .hero__brand {
+    margin: 0 0 var(--space-md);
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 8vw, 4.2rem);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+    color: var(--color-accent-deep);
+  }
+
+  .hero__headline {
+    margin: 0 0 var(--space-md);
+    max-width: 18ch;
+    font-size: clamp(1.3rem, 2.8vw, 1.75rem);
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  .hero__support {
+    max-width: 34ch;
+    color: var(--color-ink-muted);
+    margin-bottom: var(--space-lg);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  @keyframes drift {
+    from {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+      transform: translate3d(-1.5%, 1.5%, 0) scale(1.03);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .hero {
+      align-items: center;
+    }
+
+    .hero__content {
+      margin-left: auto;
+      width: min(100% - 2rem, var(--max-width));
+    }
+
+    .hero__motif {
+      opacity: 0.55;
+      right: -28%;
+      top: -4%;
+      width: 85vw;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__motif {
+      animation: none;
+    }
+  }
+</style>
