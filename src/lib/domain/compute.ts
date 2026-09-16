@@ -140,7 +140,12 @@ export function computeDashboard(bundle: ControladoriaBundle) {
     cashflow?.days.reduce((s, d) => s + d.outflows, 0) ||
     proj?.commitments ||
     0;
-  const surplus = income - expenses;
+  // Na planilha, "SOBRA / DÉFICIT" do Dashboard espelha o saldo fim do fluxo do mês
+  const surplus = cashflow
+    ? buildCashflowRows(cashflow.opening_balance, cashflow.days, 0).at(-1)
+        ?.closing ??
+      income - expenses
+    : income - expenses;
   const debts = totalDebts(bundle);
   const cardsAgo = cardsMonthTotal(cards, 8, year);
 
