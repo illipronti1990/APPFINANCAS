@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+:root {
+  --color-bg: #f3f6f4;
+  --color-bg-soft: #e7eee9;
+  --color-surface: #ffffff;
+  --color-ink: #243029;
+  --color-ink-muted: #4d5c54;
+  --color-accent: #3f6f5c;
+  --color-accent-deep: #2f5546;
+  --color-accent-soft: #d5e5dc;
+  --color-line: #c8d6cd;
+  --color-hero-glow: #c5dccf;
+  --color-danger: #9b4a3c;
+  --color-danger-soft: #f3e0db;
+  --color-warn: #8a6a2f;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@theme inline {
+  --color-bg: var(--color-bg);
+  --color-bg-soft: var(--color-bg-soft);
+  --color-surface: var(--color-surface);
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-accent: var(--color-accent);
+  --color-accent-deep: var(--color-accent-deep);
+  --color-accent-soft: var(--color-accent-soft);
+  --color-line: var(--color-line);
+  --color-danger: var(--color-danger);
+  --color-danger-soft: var(--color-danger-soft);
+  --font-display: var(--font-sora);
+  --font-body: var(--font-source-sans);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--color-ink);
+  background:
+    radial-gradient(120% 80% at 10% -10%, var(--color-hero-glow) 0%, transparent 55%),
+    radial-gradient(90% 60% at 100% 0%, #dce8e1 0%, transparent 45%),
+    linear-gradient(180deg, #eef3f0 0%, var(--color-bg) 38%, #f7f8f6 100%);
+  background-attachment: fixed;
+}
+
+a {
+  color: var(--color-accent-deep);
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  color: var(--color-accent);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.reveal {
+  animation: reveal-up 650ms var(--ease-out) both;
+}
+
+.reveal-delay-1 {
+  animation-delay: 100ms;
+}
+
+.reveal-delay-2 {
+  animation-delay: 200ms;
+}
+
+.reveal-delay-3 {
+  animation-delay: 300ms;
+}
+
+.bar-fill {
+  transform-origin: left center;
+  animation: bar-grow 700ms var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal,
+  .reveal-delay-1,
+  .reveal-delay-2,
+  .reveal-delay-3,
+  .bar-fill {
+    animation: none;
+  }
+}
