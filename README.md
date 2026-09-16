@@ -1,37 +1,32 @@
-# APPFINANCAS
+# APPFINANCAS — Controladoria Pessoal
 
-Aplicativo web de finanças pessoais do **Renan Illipronti**: registre **gastos**, o que você **deixou de gastar**, e acompanhe painéis por mês e por categoria — com conta na nuvem (Supabase) e sincronização entre dispositivos.
+Aplicativo web de **controladoria financeira pessoal** do **Renan Illipronti**, modelado na planilha Excel (Inicio, Dashboard, Agenda, Contas, Fluxo, Fixos, Empréstimos, Cartões, Cenários, Simulador, Prioridades, Patrimônio, Projeção).
 
-Interface em **português (Brasil)**.
+Interface em **português (Brasil)**. Conta na nuvem com **Supabase** (Auth + Postgres + RLS).
 
 ## Stack
 
-- [Next.js](https://nextjs.org/) (App Router) + TypeScript + Tailwind CSS
-- [Supabase](https://supabase.com/) — Auth (e-mail/senha ou link mágico) + Postgres + RLS
+- Next.js (App Router) + TypeScript + Tailwind CSS
+- Supabase Auth (e-mail/senha ou link mágico) + Postgres + RLS
+- Importador Excel (`.xlsx`) das abas da planilha original
 
 ## Pré-requisitos
 
 - Node.js 20+ (recomendado 22+)
-- Conta gratuita no [Supabase](https://supabase.com/)
+- Conta no [Supabase](https://supabase.com/)
 
 ## Configuração do Supabase
 
 1. Crie um projeto no Supabase.
-2. Em **Project Settings → API**, copie:
-   - **Project URL**
-   - **anon public** key
-3. Em **SQL Editor**, execute o conteúdo de:
+2. Em **Project Settings → API**, copie **Project URL** e **anon public**.
+3. No **SQL Editor**, execute:
 
-   [`supabase/migrations/001_transactions.sql`](supabase/migrations/001_transactions.sql)
+   [`supabase/migrations/001_controladoria.sql`](supabase/migrations/001_controladoria.sql)
 
-   Isso cria a tabela `transactions`, índices e políticas RLS (cada usuário só acessa os próprios lançamentos).
-
-4. Em **Authentication → URL Configuration**, adicione nas Redirect URLs:
+4. Em **Authentication → URL Configuration**, adicione:
 
    - `http://localhost:3000/auth/callback`
-   - (em produção) `https://SEU_DOMINIO/auth/callback`
-
-5. (Opcional) Em **Authentication → Providers → Email**, habilite confirmação de e-mail ou desative para testes locais.
+   - (produção) `https://SEU_DOMINIO/auth/callback`
 
 ## Variáveis de ambiente
 
@@ -39,15 +34,13 @@ Interface em **português (Brasil)**.
 cp .env.example .env.local
 ```
 
-Preencha:
-
 | Variável | Descrição |
 | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave anon (pública) |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave anon |
 | `NEXT_PUBLIC_SITE_URL` | URL do app (`http://localhost:3000` em dev) |
 
-**Não** coloque a `service_role` key no frontend.
+Não use a `service_role` no frontend.
 
 ## Como rodar
 
@@ -58,44 +51,62 @@ npm run dev
 
 Abra [http://localhost:3000](http://localhost:3000).
 
-### Outros comandos
-
 ```bash
-npm run build   # build de produção
-npm run start   # sobe o build
-npm run lint    # ESLint
+npm run build
+npm run start
+npm run lint
 ```
 
-## Como usar
+## Fluxo de uso
 
-1. Crie uma conta (e-mail/senha) ou entre com link mágico.
-2. Em **+ Novo**, registre um **Gasto** ou **Deixei de gastar** (valor, categoria, data, observação opcional).
-3. No **Painel**, veja totais do mês, categorias e tendência.
-4. Em **Lançamentos**, filtre, edite ou exclua registros.
-5. Em **Categorias**, veja o detalhamento do mês atual.
+1. Crie conta / entre (senha ou link mágico).
+2. Vá em **Importar** e:
+   - importe a planilha modelo (`data/planilha-modelo.xlsx`), ou
+   - envie seu `.xlsx` com as mesmas abas.
+3. Navegue: **Início → Dashboard → Agenda → Fluxo → Fixos → Empréstimos → Cartões → Cenários / Simulador → Prioridades → Patrimônio → Projeção**.
+4. Marque itens como pagos na Agenda/Fixos/parcelas Caixa PJ; atualize utilizado dos cartões; rode cenários.
 
-Os dados ficam no Postgres do Supabase, isolados por usuário via RLS. Sem inventar histórico: se a conta estiver vazia, a interface mostra estado vazio.
+Conta nova sem importação = **estado vazio** (sem inventar histórico).
+
+## Pré-visualização sem Supabase
+
+```bash
+APP_UI_PREVIEW=1 npm run dev
+```
+
+Carrega a planilha modelo só para UI (não grava no banco).
+
+## Módulos (espelho das abas)
+
+| App | Planilha |
+| --- | --- |
+| Início | Inicio |
+| Dashboard | Dashboard |
+| Agenda | Agenda |
+| Contas | Contas_Ago_Jan |
+| Fluxo | Fluxo_Diario |
+| Fixos | Fixos |
+| Empréstimos | Emprestimos |
+| Cartões | Cartoes + Dash_Cartoes |
+| Cenários / Simulador | Cenarios + Simulador |
+| Prioridades | Prioridades (+ Ranking resumido) |
+| Patrimônio | Patrimonio |
+| Projeção | Projecao |
+
+“Deixei de gastar” aparece como **juros evitados** nos cenários/simulador — não como lançamento avulso.
 
 ## Estrutura
 
 ```
-src/
-  app/
-    login/                 ← autenticação
-    auth/callback/         ← redirect OAuth / magic link
-    (app)/dashboard/       ← painel
-    (app)/transacoes/      ← lista, novo, editar
-    (app)/categorias/      ← breakdown
-    actions.ts             ← server actions (auth + CRUD)
-  components/              ← UI
-  lib/supabase/            ← clients e middleware
-supabase/migrations/       ← SQL + RLS
-.env.example
+data/planilha-modelo.xlsx     ← modelo para importação
+supabase/migrations/          ← schema + RLS
+src/lib/import/excel.ts       ← parser das abas
+src/lib/domain/               ← tipos + KPIs + simulador
+src/app/(app)/                ← telas autenticadas
 ```
 
 ## Observações
 
-- Design acolhedor (verde sage), tipografia Sora + Source Sans 3, pensado para celular.
-- O PR anterior de site estático (Astro) era um esboço de marca; este app é o produto.
-- Em produção (Vercel etc.), configure as mesmas variáveis de ambiente e a URL de callback no Supabase.
-- Para pré-visualizar a UI sem Supabase (estado vazio): `APP_UI_PREVIEW=1 npm run dev` e abra `/preview`.
+- Design acolhedor (verde sage), tipografia Sora + Source Sans 3, mobile-friendly.
+- Saldos reais vivem no Supabase do usuário após importar — não ficam hardcoded no app.
+- Ranking completo e CRUD fino de todas as células da planilha podem evoluir; o MVP já navega e calcula a partir dos dados importados.

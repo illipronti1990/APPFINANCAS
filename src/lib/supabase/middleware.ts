@@ -6,11 +6,8 @@ export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
   const pathname = request.nextUrl.pathname;
 
-  // Pré-visualização visual local (sem auth)
-  if (
-    process.env.APP_UI_PREVIEW === "1" &&
-    pathname.startsWith("/preview")
-  ) {
+  // Pré-visualização visual local (sem auth) — carrega dados da planilha modelo
+  if (process.env.APP_UI_PREVIEW === "1") {
     return supabaseResponse;
   }
 
@@ -57,7 +54,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && pathname === "/login") {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/dashboard";
+    redirectUrl.pathname = "/inicio";
     redirectUrl.search = "";
     return NextResponse.redirect(redirectUrl);
   }

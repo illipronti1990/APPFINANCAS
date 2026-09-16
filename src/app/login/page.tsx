@@ -19,7 +19,7 @@ export default async function LoginPage({
           APPFINANCAS
         </p>
         <p className="mt-2 text-ink-muted">
-          Seus gastos e o que você deixou de gastar — com sincronização na nuvem.
+          Seus gastos, dívidas, cartões e caixa — controladoria pessoal na nuvem.
         </p>
         <p className="mt-1 text-sm text-ink-muted">Renan Illipronti</p>
       </div>

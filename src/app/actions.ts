@@ -2,82 +2,73 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { replaceUserBundle } from "@/lib/data/persist";
+import { parseWorkbook, parseWorkbookFromFile } from "@/lib/import/excel";
 import { getSupabaseEnv } from "@/lib/supabase/config";
-import type { TransactionKind } from "@/lib/types";
+import { createClient } from "@/lib/supabase/server";
+import path from "path";
 
-function revalidateApp() {
-  revalidatePath("/dashboard");
-  revalidatePath("/transacoes");
-  revalidatePath("/categorias");
+function revalidateAll() {
+  for (const p of [
+    "/inicio",
+    "/dashboard",
+    "/agenda",
+    "/contas",
+    "/fluxo",
+    "/fixos",
+    "/emprestimos",
+    "/cartoes",
+    "/cenarios",
+    "/simulador",
+    "/prioridades",
+    "/patrimonio",
+    "/projecao",
+    "/importar",
+  ]) {
+    revalidatePath(p);
+  }
 }
 
 export async function signInWithPassword(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-
-  if (!email || !password) {
-    return { error: "Informe e-mail e senha." };
-  }
-
+  if (!email || !password) return { error: "Informe e-mail e senha." };
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-  if (error) {
-    return { error: "Não foi possível entrar. Verifique e-mail e senha." };
-  }
-
-  redirect("/dashboard");
+  if (error) return { error: "Não foi possível entrar. Verifique e-mail e senha." };
+  redirect("/inicio");
 }
 
 export async function signUpWithPassword(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const { siteUrl } = getSupabaseEnv();
-
   if (!email || password.length < 6) {
     return { error: "Use um e-mail válido e senha com pelo menos 6 caracteres." };
   }
-
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
     email,
     password,
-    options: {
-      emailRedirectTo: `${siteUrl}/auth/callback`,
-    },
+    options: { emailRedirectTo: `${siteUrl}/auth/callback` },
   });
-
-  if (error) {
-    return { error: error.message || "Não foi possível criar a conta." };
-  }
-
+  if (error) return { error: error.message || "Não foi possível criar a conta." };
   return {
     success:
-      "Conta criada. Se o projeto exigir confirmação, verifique seu e-mail. Depois, faça login.",
+      "Conta criada. Se o projeto exigir confirmação, verifique seu e-mail. Depois, faça login e importe a planilha.",
   };
 }
 
 export async function signInWithMagicLink(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const { siteUrl } = getSupabaseEnv();
-
-  if (!email) {
-    return { error: "Informe seu e-mail." };
-  }
-
+  if (!email) return { error: "Informe seu e-mail." };
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: {
-      emailRedirectTo: `${siteUrl}/auth/callback`,
-    },
+    options: { emailRedirectTo: `${siteUrl}/auth/callback` },
   });
-
-  if (error) {
-    return { error: "Não foi possível enviar o link. Tente novamente." };
-  }
-
+  if (error) return { error: "Não foi possível enviar o link. Tente novamente." };
   return {
     success: "Enviamos um link mágico para seu e-mail. Abra-o neste dispositivo.",
   };
@@ -89,121 +80,141 @@ export async function signOut() {
   redirect("/login");
 }
 
-export async function createTransaction(formData: FormData) {
-  const kind = String(formData.get("kind") ?? "") as TransactionKind;
-  const amountRaw = String(formData.get("amount") ?? "").trim();
-  const category = String(formData.get("category") ?? "").trim();
-  const note = String(formData.get("note") ?? "").trim();
-  const occurredOn = String(formData.get("occurred_on") ?? "").trim();
+export async function toggleAgendaPaid(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const paid = String(formData.get("paid") ?? "") === "true";
+  if (!id || process.env.APP_UI_PREVIEW === "1") return;
+  const supabase = await createClient();
+  await supabase.from("agenda_items").update({ paid: !paid }).eq("id", id);
+  revalidateAll();
+}
 
-  if (kind !== "gasto" && kind !== "deixei_de_gastar") {
-    return { error: "Tipo de lançamento inválido." };
+export async function toggleFixedPaid(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const paid = String(formData.get("paid") ?? "") === "true";
+  if (!id || process.env.APP_UI_PREVIEW === "1") return;
+  const supabase = await createClient();
+  await supabase.from("fixed_expenses").update({ paid: !paid }).eq("id", id);
+  revalidateAll();
+}
+
+export async function markParcelPaid(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  if (!id || process.env.APP_UI_PREVIEW === "1") return;
+  const supabase = await createClient();
+  await supabase
+    .from("loan_parcels")
+    .update({ situation: "Pago" })
+    .eq("id", id);
+  revalidateAll();
+}
+
+export async function updateCardUsed(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const used = Number(String(formData.get("used") ?? "").replace(",", "."));
+  if (!id || !Number.isFinite(used) || used < 0) return;
+  if (process.env.APP_UI_PREVIEW === "1") return;
+  const supabase = await createClient();
+  await supabase.from("credit_cards").update({ used_amount: used }).eq("id", id);
+  revalidateAll();
+}
+
+export async function updateScenarioInputs(formData: FormData) {
+  const fields = {
+    caixa_livre: Number(String(formData.get("caixa_livre") ?? "0").replace(",", ".")),
+    extra_income: Number(String(formData.get("extra_income") ?? "0").replace(",", ".")),
+    bonus: Number(String(formData.get("bonus") ?? "0").replace(",", ".")),
+    asset_sale: Number(String(formData.get("asset_sale") ?? "0").replace(",", ".")),
+    other_amount: Number(String(formData.get("other_amount") ?? "0").replace(",", ".")),
+    monthly_surplus: Number(
+      String(formData.get("monthly_surplus") ?? "0").replace(",", "."),
+    ),
+    simulator_received: Number(
+      String(formData.get("simulator_received") ?? "0").replace(",", "."),
+    ),
+  };
+  if (process.env.APP_UI_PREVIEW === "1") {
+    return { success: "Pré-visualização: cenário calculado só na tela." };
   }
-
-  const amount = Number(amountRaw.replace(",", "."));
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return { error: "Informe um valor maior que zero." };
-  }
-
-  if (!category) {
-    return { error: "Informe a categoria." };
-  }
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(occurredOn)) {
-    return { error: "Informe uma data válida." };
-  }
-
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "Sessão expirada. Faça login novamente." };
-  }
-
-  const { error } = await supabase.from("transactions").insert({
+  if (!user) return { error: "Sessão expirada." };
+  const { error } = await supabase.from("scenario_inputs").upsert({
     user_id: user.id,
-    kind,
-    amount,
-    category,
-    note: note || null,
-    occurred_on: occurredOn,
+    ...fields,
   });
+  if (error) return { error: "Não foi possível salvar o cenário." };
+  revalidateAll();
+  return { success: "Cenário atualizado." };
+}
 
-  if (error) {
+export async function updateReferenceDay(formData: FormData) {
+  const day = Number(formData.get("reference_day"));
+  if (!Number.isFinite(day) || day < 1 || day > 31) {
+    return { error: "Dia inválido." };
+  }
+  if (process.env.APP_UI_PREVIEW === "1") {
+    return { success: "Pré-visualização: dia de referência não persistido." };
+  }
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Sessão expirada." };
+  const { error } = await supabase
+    .from("user_settings")
+    .upsert({ user_id: user.id, reference_day: day }, { onConflict: "user_id" });
+  if (error) return { error: "Não foi possível salvar." };
+  revalidateAll();
+  return { success: "Dia de referência atualizado." };
+}
+
+export async function importModeloPlanilha() {
+  if (process.env.APP_UI_PREVIEW === "1") {
+    return { success: "Em pré-visualização os dados já vêm da planilha modelo." };
+  }
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Faça login para importar." };
+  try {
+    const file = path.join(process.cwd(), "data", "planilha-modelo.xlsx");
+    const bundle = await parseWorkbookFromFile(file);
+    await replaceUserBundle(user.id, bundle);
+    revalidateAll();
+    return { success: "Planilha modelo importada com sucesso." };
+  } catch (e) {
     return {
-      error:
-        "Não foi possível salvar. Confira se a tabela transactions existe no Supabase.",
+      error: e instanceof Error ? e.message : "Falha ao importar a planilha.",
     };
   }
-
-  revalidateApp();
-  redirect("/transacoes");
 }
 
-export async function updateTransaction(formData: FormData) {
-  const id = String(formData.get("id") ?? "");
-  const kind = String(formData.get("kind") ?? "") as TransactionKind;
-  const amountRaw = String(formData.get("amount") ?? "").trim();
-  const category = String(formData.get("category") ?? "").trim();
-  const note = String(formData.get("note") ?? "").trim();
-  const occurredOn = String(formData.get("occurred_on") ?? "").trim();
-
-  if (!id) {
-    return { error: "Lançamento não encontrado." };
+export async function importUploadedPlanilha(formData: FormData) {
+  if (process.env.APP_UI_PREVIEW === "1") {
+    return { error: "Importação de arquivo desativada na pré-visualização." };
   }
-
-  if (kind !== "gasto" && kind !== "deixei_de_gastar") {
-    return { error: "Tipo de lançamento inválido." };
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Selecione um arquivo .xlsx." };
   }
-
-  const amount = Number(amountRaw.replace(",", "."));
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return { error: "Informe um valor maior que zero." };
-  }
-
-  if (!category) {
-    return { error: "Informe a categoria." };
-  }
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(occurredOn)) {
-    return { error: "Informe uma data válida." };
-  }
-
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("transactions")
-    .update({
-      kind,
-      amount,
-      category,
-      note: note || null,
-      occurred_on: occurredOn,
-    })
-    .eq("id", id);
-
-  if (error) {
-    return { error: "Não foi possível atualizar o lançamento." };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Faça login para importar." };
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const bundle = parseWorkbook(buffer);
+    await replaceUserBundle(user.id, bundle);
+    revalidateAll();
+    return { success: "Planilha importada. Seus dados na nuvem foram atualizados." };
+  } catch (e) {
+    return {
+      error: e instanceof Error ? e.message : "Falha ao importar a planilha.",
+    };
   }
-
-  revalidateApp();
-  redirect("/transacoes");
-}
-
-export async function deleteTransaction(formData: FormData) {
-  const id = String(formData.get("id") ?? "");
-  if (!id) {
-    return { error: "Lançamento não encontrado." };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase.from("transactions").delete().eq("id", id);
-
-  if (error) {
-    return { error: "Não foi possível excluir o lançamento." };
-  }
-
-  revalidateApp();
-  redirect("/transacoes");
 }

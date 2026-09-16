@@ -40,7 +40,7 @@ export function LoginForm({ configured }: { configured: boolean }) {
           para <code className="rounded bg-bg-soft px-1.5 py-0.5 text-sm">.env.local</code>,
           preencha URL e anon key, e rode a migration SQL em{" "}
           <code className="rounded bg-bg-soft px-1.5 py-0.5 text-sm">
-            supabase/migrations/001_transactions.sql
+            supabase/migrations/001_controladoria.sql
           </code>
           .
         </p>
